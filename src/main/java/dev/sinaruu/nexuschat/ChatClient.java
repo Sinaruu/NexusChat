@@ -170,22 +170,26 @@ public class ChatClient extends Application {
 
         final String finalHost = host;
         connectBtn.setDisable(true);
+        disconnectBtn.setDisable(false);
+        usernameField.setDisable(true);
+        hostField.setDisable(true);
+        statusLabel.setText("● CONNECTING…");
+        statusLabel.setStyle("-fx-text-fill: #ffaa00;");
+
+        socket = new Socket();
 
         new Thread(() -> {
             try {
-                socket = new Socket(finalHost, PORT);
+                socket.connect(new InetSocketAddress(finalHost, PORT), 10_000);
                 out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-                out.println(username); // send username first
+                out.println(username);
                 connected = true;
 
                 Platform.runLater(() -> {
                     statusLabel.setText("● " + username.toUpperCase());
                     statusLabel.setStyle("-fx-text-fill: #00e5ff;");
-                    disconnectBtn.setDisable(false);
                     inputField.setDisable(false);
                     sendBtn.setDisable(false);
-                    usernameField.setDisable(true);
-                    hostField.setDisable(true);
                     inputField.requestFocus();
                     addSystemMessage("Connected to " + finalHost + ":" + PORT + " as " + username);
                 });
@@ -197,9 +201,17 @@ public class ChatClient extends Application {
                     final String msg = line;
                     Platform.runLater(() -> addIncomingMessage(msg));
                 }
+            } catch (SocketTimeoutException e) {
+                Platform.runLater(() -> {
+                    addSystemMessage("Connection timed out, server unreachable.");
+                    resetUI();
+                });
             } catch (IOException e) {
                 Platform.runLater(() -> {
-                    addSystemMessage("Connection failed: " + e.getMessage());
+                    if (!connected)
+                        addSystemMessage(socket.isClosed()
+                            ? "Connection cancelled."
+                            : "Connection failed: " + e.getMessage());
                     resetUI();
                 });
             } finally {
