@@ -2,14 +2,12 @@ package dev.sinaruu.nexuschat;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -23,107 +21,24 @@ public class ChatServer extends Application {
     private static final int PORT = 5555;
     private ServerSocket serverSocket;
     private final List<ClientHandler> clients = new CopyOnWriteArrayList<>();
-    private TextArea logArea;
-    private Label statusLabel;
-    private Label clientCountLabel;
-    private Button startBtn;
-    private Button stopBtn;
     private boolean running = false;
     private ExecutorService pool = Executors.newCachedThreadPool();
 
+    @FXML private TextArea logArea;
+    @FXML private Label statusLabel;
+    @FXML private Label clientCountLabel;
+    @FXML private Button startBtn;
+    @FXML private Button stopBtn;
+
     @Override
-    public void start(Stage stage) {
-        stage.setTitle("NexusChat Server");
+    public void start(Stage stage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("chat-server.fxml"));
+        loader.setController(this);
+        BorderPane root = loader.load();
 
-        // Root
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: #0d0d0f;");
-
-        // ── Top Bar ──────────────────────────────────────────────────
-        HBox topBar = new HBox(12);
-        topBar.setPadding(new Insets(16, 20, 16, 20));
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setStyle("-fx-background-color: #13131a; -fx-border-color: #2a2a3a; -fx-border-width: 0 0 1 0;");
-
-        Label logo = new Label("NEXUS");
-        logo.setFont(Font.font("Courier New", FontWeight.BOLD, 22));
-        logo.setStyle("-fx-text-fill: #00e5ff; -fx-letter-spacing: 4;");
-
-        Label serverTag = new Label("SERVER");
-        serverTag.setFont(Font.font("Courier New", FontWeight.BOLD, 10));
-        serverTag.setStyle(
-            "-fx-text-fill: #0d0d0f;" +
-            "-fx-background-color: #00e5ff;" +
-            "-fx-padding: 2 6 2 6;" +
-            "-fx-background-radius: 2;"
-        );
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        clientCountLabel = new Label("0 CLIENTS");
-        clientCountLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 11));
-        clientCountLabel.setStyle("-fx-text-fill: #555577;");
-
-        statusLabel = new Label("● OFFLINE");
-        statusLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 11));
-        statusLabel.setStyle("-fx-text-fill: #ff4455;");
-
-        topBar.getChildren().addAll(logo, serverTag, spacer, clientCountLabel, statusLabel);
-        root.setTop(topBar);
-
-        // ── Log Area ─────────────────────────────────────────────────
-        logArea = new TextArea();
-        logArea.setEditable(false);
-        logArea.setWrapText(true);
-        logArea.setStyle(
-            "-fx-control-inner-background: #0d0d0f;" +
-            "-fx-text-fill: #88aacc;" +
-            "-fx-font-family: 'Courier New';" +
-            "-fx-font-size: 12;" +
-            "-fx-border-color: transparent;" +
-            "-fx-background-color: transparent;" +
-            "-fx-highlight-fill: #00e5ff33;" +
-            "-fx-highlight-text-fill: #ffffff;"
-        );
-        logArea.setPadding(new Insets(10));
-
-        ScrollPane scroll = new ScrollPane(logArea);
-        scroll.setFitToWidth(true);
-        scroll.setFitToHeight(true);
-        scroll.setStyle("-fx-background: #0d0d0f; -fx-background-color: #0d0d0f; -fx-border-color: transparent;");
-
-        VBox centerBox = new VBox(0, scroll);
-        centerBox.setPadding(new Insets(0, 0, 0, 0));
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        root.setCenter(centerBox);
-
-        // ── Bottom Controls ───────────────────────────────────────────
-        HBox bottomBar = new HBox(10);
-        bottomBar.setPadding(new Insets(14, 20, 14, 20));
-        bottomBar.setAlignment(Pos.CENTER_LEFT);
-        bottomBar.setStyle("-fx-background-color: #13131a; -fx-border-color: #2a2a3a; -fx-border-width: 1 0 0 0;");
-
-        Label portLabel = new Label("PORT  " + PORT);
-        portLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 12));
-        portLabel.setStyle("-fx-text-fill: #444466;");
-
-        Region spacer2 = new Region();
-        HBox.setHgrow(spacer2, Priority.ALWAYS);
-
-        startBtn = styledButton("▶  START SERVER", "#00e5ff", "#0d0d0f");
-        stopBtn  = styledButton("■  STOP SERVER",  "#ff4455", "#0d0d0f");
-        stopBtn.setDisable(true);
-
-        startBtn.setOnAction(e -> startServer());
-        stopBtn.setOnAction(e -> stopServer());
-
-        bottomBar.getChildren().addAll(portLabel, spacer2, startBtn, stopBtn);
-        root.setBottom(bottomBar);
-
-        // ── Scene ─────────────────────────────────────────────────────
         Scene scene = new Scene(root, 700, 500);
         scene.setFill(Color.web("#0d0d0f"));
+        stage.setTitle("NexusChat Server");
         stage.setScene(scene);
         stage.setMinWidth(500);
         stage.setMinHeight(400);
@@ -137,33 +52,7 @@ public class ChatServer extends Application {
         });
     }
 
-    private Button styledButton(String text, String color, String textColor) {
-        Button btn = new Button(text);
-        btn.setFont(Font.font("Courier New", FontWeight.BOLD, 11));
-        String base = String.format(
-            "-fx-background-color: transparent;" +
-            "-fx-text-fill: %s;" +
-            "-fx-border-color: %s;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 2;" +
-            "-fx-background-radius: 2;" +
-            "-fx-padding: 6 16 6 16;" +
-            "-fx-cursor: hand;", color, color);
-        String hover = String.format(
-            "-fx-background-color: %s;" +
-            "-fx-text-fill: %s;" +
-            "-fx-border-color: %s;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 2;" +
-            "-fx-background-radius: 2;" +
-            "-fx-padding: 6 16 6 16;" +
-            "-fx-cursor: hand;", color, textColor, color);
-        btn.setStyle(base);
-        btn.setOnMouseEntered(e -> { if (!btn.isDisabled()) btn.setStyle(hover); });
-        btn.setOnMouseExited(e -> { if (!btn.isDisabled()) btn.setStyle(base); });
-        return btn;
-    }
-
+    @FXML
     private void startServer() {
         running = true;
         startBtn.setDisable(true);
@@ -193,6 +82,7 @@ public class ChatServer extends Application {
         });
     }
 
+    @FXML
     private void stopServer() {
         running = false;
         try {
@@ -253,7 +143,6 @@ public class ChatServer extends Application {
             ) {
                 out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
 
-                // First message is the username
                 username = in.readLine();
                 if (username == null) return;
                 Platform.runLater(() -> appendLog("JOIN", username + " connected from " + socket.getInetAddress().getHostAddress()));

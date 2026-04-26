@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@styles.css">
+
+    <!-- Top bar: logo / server tag / client count / status -->
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="top-bar">
+            <padding><Insets top="16" right="20" bottom="16" left="20"/></padding>
+            <Label text="NEXUS" styleClass="logo"/>
+            <Label text="SERVER" styleClass="server-tag"/>
+            <Region>
+                <HBox.hgrow>ALWAYS</HBox.hgrow>
+            </Region>
+            <Label fx:id="clientCountLabel" text="0 CLIENTS" styleClass="client-count-label"/>
+            <Label fx:id="statusLabel" text="● OFFLINE"
+                   styleClass="status-label" style="-fx-text-fill: #ff4455;"/>
+        </HBox>
+    </top>
+
+    <!-- Log area -->
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="log-scroll">
+            <content>
+                <TextArea fx:id="logArea" editable="false" wrapText="true"
+                          styleClass="log-area"/>
+            </content>
+        </ScrollPane>
+    </center>
+
+    <!-- Bottom bar: port label / start / stop -->
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="bottom-bar">
+            <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
+            <Label text="PORT  5555" styleClass="port-display-label"/>
+            <Region>
+                <HBox.hgrow>ALWAYS</HBox.hgrow>
+            </Region>
+            <Button fx:id="startBtn" text="▶  START SERVER"
+                    styleClass="btn-cyan-lg" onAction="#startServer"/>
+            <Button fx:id="stopBtn" text="■  STOP SERVER"
+                    styleClass="btn-red-lg" disable="true" onAction="#stopServer"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

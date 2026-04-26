@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@styles.css">
+
+    <top>
+        <VBox>
+            <!-- Top bar: logo + status -->
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="top-bar">
+                <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
+                <Label text="NEXUS" styleClass="logo"/>
+                <Region>
+                    <HBox.hgrow>ALWAYS</HBox.hgrow>
+                </Region>
+                <Label fx:id="statusLabel" text="● DISCONNECTED"
+                       styleClass="status-label" style="-fx-text-fill: #ff4455;"/>
+            </HBox>
+
+            <!-- Connection bar: user / host / port / buttons -->
+            <HBox spacing="8" alignment="CENTER_LEFT" styleClass="connect-bar">
+                <padding><Insets top="10" right="20" bottom="10" left="20"/></padding>
+                <Label text="USER" styleClass="field-label"/>
+                <TextField fx:id="usernameField" promptText="YourName"
+                           prefWidth="100" styleClass="styled-field"/>
+                <Label text="HOST" styleClass="field-label"/>
+                <TextField fx:id="hostField" promptText="localhost"
+                           prefWidth="120" styleClass="styled-field"/>
+                <Label text=":5555" styleClass="port-label"/>
+                <Region>
+                    <HBox.hgrow>ALWAYS</HBox.hgrow>
+                </Region>
+                <Button fx:id="connectBtn" text="CONNECT"
+                        styleClass="btn-cyan" onAction="#connect"/>
+                <Button fx:id="disconnectBtn" text="DISCONNECT"
+                        styleClass="btn-red" disable="true" onAction="#disconnect"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Chat message area -->
+    <center>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" fitToHeight="true"
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    styleClass="message-scroll">
+            <content>
+                <VBox fx:id="messageBox" spacing="6" fillWidth="true"
+                      styleClass="message-box">
+                    <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+
+    <!-- Input bar -->
+    <bottom>
+        <HBox spacing="8" alignment="CENTER" styleClass="input-bar">
+            <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+            <TextField fx:id="inputField"
+                       promptText="Type a message…  (connect first)"
+                       disable="true" styleClass="input-field">
+                <HBox.hgrow>ALWAYS</HBox.hgrow>
+            </TextField>
+            <Button fx:id="sendBtn" text="SEND" styleClass="btn-purple"
+                    disable="true" minWidth="70" onAction="#sendMessage"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

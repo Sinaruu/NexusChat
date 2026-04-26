@@ -2,6 +2,8 @@ package dev.sinaruu.nexuschat;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -25,140 +27,49 @@ public class ChatClient extends Application {
 
     private Socket socket;
     private PrintWriter out;
-    private VBox messageBox;
-    private ScrollPane scrollPane;
-    private TextField inputField;
-    private TextField usernameField;
-    private TextField hostField;
-    private Button connectBtn;
-    private Button disconnectBtn;
-    private Button sendBtn;
-    private Label statusLabel;
     private String username = "";
     private boolean connected = false;
 
+    @FXML private VBox messageBox;
+    @FXML private ScrollPane scrollPane;
+    @FXML private TextField inputField;
+    @FXML private TextField usernameField;
+    @FXML private TextField hostField;
+    @FXML private Button connectBtn;
+    @FXML private Button disconnectBtn;
+    @FXML private Button sendBtn;
+    @FXML private Label statusLabel;
+
     @Override
-    public void start(Stage stage) {
-        stage.setTitle("NexusChat");
-
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: #0d0d0f;");
-
-        // ── Top Bar ──────────────────────────────────────────────────
-        HBox topBar = new HBox(12);
-        topBar.setPadding(new Insets(14, 20, 14, 20));
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setStyle("-fx-background-color: #13131a; -fx-border-color: #2a2a3a; -fx-border-width: 0 0 1 0;");
-
-        Label logo = new Label("NEXUS");
-        logo.setFont(Font.font("Courier New", FontWeight.BOLD, 22));
-        logo.setStyle("-fx-text-fill: #00e5ff; -fx-letter-spacing: 4;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        statusLabel = new Label("● DISCONNECTED");
-        statusLabel.setFont(Font.font("Courier New", FontWeight.BOLD, 11));
-        statusLabel.setStyle("-fx-text-fill: #ff4455;");
-
-        topBar.getChildren().addAll(logo, spacer, statusLabel);
-        root.setTop(topBar);
-
-        // ── Connection Panel ──────────────────────────────────────────
-        HBox connectBar = new HBox(8);
-        connectBar.setPadding(new Insets(10, 20, 10, 20));
-        connectBar.setAlignment(Pos.CENTER_LEFT);
-        connectBar.setStyle("-fx-background-color: #0f0f17; -fx-border-color: #1e1e2e; -fx-border-width: 0 0 1 0;");
-
-        Label userLbl = styledLabel("USER");
-        usernameField = styledTextField("YourName", 100);
-
-        Label hostLbl = styledLabel("HOST");
-        hostField = styledTextField(HOST, 120);
-
-        Label portLbl = styledLabel(":" + PORT);
-        portLbl.setStyle("-fx-text-fill: #444466; -fx-font-family: 'Courier New'; -fx-font-size: 12;");
-
-        Region gap = new Region();
-        HBox.setHgrow(gap, Priority.ALWAYS);
-
-        connectBtn    = styledButton("CONNECT",    "#00e5ff", "#0d0d0f");
-        disconnectBtn = styledButton("DISCONNECT", "#ff4455", "#0d0d0f");
-        disconnectBtn.setDisable(true);
-
-        connectBtn.setOnAction(e -> connect());
-        disconnectBtn.setOnAction(e -> disconnect());
-
-        connectBar.getChildren().addAll(userLbl, usernameField, hostLbl, hostField, portLbl, gap, connectBtn, disconnectBtn);
-        root.setTop(new VBox(topBar, connectBar));
-
-        // ── Chat Messages ─────────────────────────────────────────────
-        messageBox = new VBox(6);
-        messageBox.setPadding(new Insets(14, 16, 14, 16));
-        messageBox.setFillWidth(true);
-
-        scrollPane = new ScrollPane(messageBox);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
-        scrollPane.setStyle("-fx-background: #0d0d0f; -fx-background-color: #0d0d0f; -fx-border-color: transparent;");
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        // Auto-scroll
-        messageBox.heightProperty().addListener((obs, ov, nv) ->
-            scrollPane.setVvalue(1.0)
-        );
-
-        root.setCenter(scrollPane);
-
-        // ── Input Bar ─────────────────────────────────────────────────
-        HBox inputBar = new HBox(8);
-        inputBar.setPadding(new Insets(12, 16, 12, 16));
-        inputBar.setAlignment(Pos.CENTER);
-        inputBar.setStyle("-fx-background-color: #13131a; -fx-border-color: #2a2a3a; -fx-border-width: 1 0 0 0;");
-
-        inputField = new TextField();
-        inputField.setPromptText("Type a message…  (connect first)");
-        inputField.setDisable(true);
-        inputField.setStyle(
-            "-fx-background-color: #1a1a27;" +
-            "-fx-text-fill: #ccddee;" +
-            "-fx-prompt-text-fill: #334455;" +
-            "-fx-font-family: 'Courier New';" +
-            "-fx-font-size: 13;" +
-            "-fx-border-color: #2a2a3a;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 2;" +
-            "-fx-background-radius: 2;" +
-            "-fx-padding: 8 12 8 12;"
-        );
-        HBox.setHgrow(inputField, Priority.ALWAYS);
-
-        sendBtn = styledButton("SEND", "#aa55ff", "#ffffff");
-        sendBtn.setDisable(true);
-        sendBtn.setMinWidth(70);
-
-        inputField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) sendMessage();
-        });
-        sendBtn.setOnAction(e -> sendMessage());
-
-        inputBar.getChildren().addAll(inputField, sendBtn);
-        root.setBottom(inputBar);
+    public void start(Stage stage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("chat-client.fxml"));
+        loader.setController(this);
+        BorderPane root = loader.load();
 
         Scene scene = new Scene(root, 680, 580);
         scene.setFill(Color.web("#0d0d0f"));
+        stage.setTitle("NexusChat");
         stage.setScene(scene);
         stage.setMinWidth(500);
         stage.setMinHeight(450);
         stage.show();
 
         addSystemMessage("Welcome to NexusChat. Enter your username and connect to a server.");
-
         stage.setOnCloseRequest(e -> disconnect());
     }
 
+    @FXML
+    private void initialize() {
+        messageBox.heightProperty().addListener((obs, ov, nv) ->
+            scrollPane.setVvalue(1.0)
+        );
+        inputField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) sendMessage();
+        });
+    }
+
     // ── Connection ────────────────────────────────────────────────────
+    @FXML
     private void connect() {
         username = usernameField.getText().trim();
         if (username.isEmpty()) {
@@ -194,7 +105,6 @@ public class ChatClient extends Application {
                     addSystemMessage("Connected to " + finalHost + ":" + PORT + " as " + username);
                 });
 
-                // Listen for messages
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String line;
                 while ((line = in.readLine()) != null) {
@@ -223,6 +133,7 @@ public class ChatClient extends Application {
         }, "reader-thread").start();
     }
 
+    @FXML
     private void disconnect() {
         connected = false;
         try {
@@ -244,6 +155,7 @@ public class ChatClient extends Application {
     }
 
     // ── Messaging ─────────────────────────────────────────────────────
+    @FXML
     private void sendMessage() {
         if (!connected || out == null) return;
         String text = inputField.getText().trim();
@@ -350,60 +262,6 @@ public class ChatClient extends Application {
 
         row.getChildren().add(lbl);
         messageBox.getChildren().add(row);
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────
-    private Label styledLabel(String text) {
-        Label l = new Label(text);
-        l.setFont(Font.font("Courier New", FontWeight.BOLD, 10));
-        l.setStyle("-fx-text-fill: #445566;");
-        return l;
-    }
-
-    private TextField styledTextField(String prompt, double width) {
-        TextField tf = new TextField();
-        tf.setPromptText(prompt);
-        tf.setPrefWidth(width);
-        tf.setStyle(
-            "-fx-background-color: #1a1a27;" +
-            "-fx-text-fill: #ccddee;" +
-            "-fx-prompt-text-fill: #334455;" +
-            "-fx-font-family: 'Courier New';" +
-            "-fx-font-size: 12;" +
-            "-fx-border-color: #2a2a3a;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 2;" +
-            "-fx-background-radius: 2;" +
-            "-fx-padding: 5 8 5 8;"
-        );
-        return tf;
-    }
-
-    private Button styledButton(String text, String color, String textColor) {
-        Button btn = new Button(text);
-        btn.setFont(Font.font("Courier New", FontWeight.BOLD, 10));
-        String base = String.format(
-            "-fx-background-color: transparent;" +
-            "-fx-text-fill: %s;" +
-            "-fx-border-color: %s;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 2;" +
-            "-fx-background-radius: 2;" +
-            "-fx-padding: 5 14 5 14;" +
-            "-fx-cursor: hand;", color, color);
-        String hover = String.format(
-            "-fx-background-color: %s;" +
-            "-fx-text-fill: %s;" +
-            "-fx-border-color: %s;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 2;" +
-            "-fx-background-radius: 2;" +
-            "-fx-padding: 5 14 5 14;" +
-            "-fx-cursor: hand;", color, textColor, color);
-        btn.setStyle(base);
-        btn.setOnMouseEntered(e -> { if (!btn.isDisabled()) btn.setStyle(hover); });
-        btn.setOnMouseExited(e -> { if (!btn.isDisabled()) btn.setStyle(base); });
-        return btn;
     }
 
     public static void main(String[] args) { launch(args); }
